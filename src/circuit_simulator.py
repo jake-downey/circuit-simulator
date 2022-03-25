@@ -6,7 +6,7 @@ from utils import *
 # Electric Circuit Simulator
 class RLC(Scene):
     r = ValueTracker(0)
-    L = ValueTracker(0.2)
+    l = ValueTracker(0.2)
     C = ValueTracker(0.0001)
 
     EMF = 5
@@ -18,7 +18,7 @@ class RLC(Scene):
 
     # Returns the Voltage and Current at frame
     def get_voltage_and_current(self):
-        alpha = (self.Q / (self.L.get_value() * self.C.get_value())) - (self.I * self.r.get_value() / self.L.get_value())
+        alpha = (self.Q / (self.l.get_value() * self.C.get_value())) - (self.I * self.r.get_value() / self.l.get_value())
 
         self.I = self.I + (alpha * self.dt)
         self.Q = self.Q - (self.I * self.dt)
@@ -85,7 +85,7 @@ class RLC(Scene):
         l_text, l_number, l_units = l_label = VGroup(
             Text("L = ", font_size=36).set_color(GREEN),
             DecimalNumber(
-                self.L.get_value(),
+                self.l.get_value(),
                 num_decimal_places = 6
             ),
             Text("H", font_size=28, slant = ITALIC).set_color(WHITE)
@@ -106,7 +106,7 @@ class RLC(Scene):
         # Create Frequency Text
         frequency_text = Text("Frequency = ", font_size=36).set_color(ORANGE)
         frequency_number = DecimalNumber(
-                    get_resonant_frequency(self.L, self.C),
+                    get_resonant_frequency(self.l, self.C),
                     num_decimal_places = 2
                 )
         frequency_units = Text("Hz", font_size=28, slant = ITALIC)
@@ -121,9 +121,9 @@ class RLC(Scene):
 
         # add updaters to decimal numbers
         r_number.add_updater(lambda m: m.set_value(self.r.get_value()))
-        l_number.add_updater(lambda m: m.set_value(self.L.get_value()))
+        l_number.add_updater(lambda m: m.set_value(self.l.get_value()))
         c_number.add_updater(lambda m: m.set_value(self.C.get_value()))
-        frequency_number.add_updater(lambda m: m.set_value(get_resonant_frequency(self.L, self.C)))
+        frequency_number.add_updater(lambda m: m.set_value(get_resonant_frequency(self.l, self.C)))
 
         # add objects and animations
         self.add(r_label, l_label, c_label, frequency_label, va_label)
@@ -132,10 +132,10 @@ class RLC(Scene):
         # play animations
         self.wait()
         self.play(self.r.animate.set_value(6), run_time = 3)
-        self.play(self.L.animate.set_value(0.5), run_time = 2)
+        self.play(self.l.animate.set_value(0.5), run_time = 2)
         self.play(self.C.animate.set_value(0.002), run_time = 2)
 
-        self.play(self.L.animate.set_value(0.2), run_time = 1)
+        self.play(self.l.animate.set_value(0.2), run_time = 1)
         self.play(self.C.animate.set_value(0.0001), run_time = 1)
         self.play(self.r.animate.set_value(0), run_time = 2)
 
