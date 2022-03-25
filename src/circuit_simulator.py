@@ -5,7 +5,7 @@ from utils import *
 
 # Electric Circuit Simulator
 class RLC(Scene):
-    R = ValueTracker(0)
+    r = ValueTracker(0)
     L = ValueTracker(0.2)
     C = ValueTracker(0.0001)
 
@@ -18,7 +18,7 @@ class RLC(Scene):
 
     # Returns the Voltage and Current at frame
     def get_voltage_and_current(self):
-        alpha = (self.Q / (self.L.get_value() * self.C.get_value())) - (self.I * self.R.get_value() / self.L.get_value())
+        alpha = (self.Q / (self.L.get_value() * self.C.get_value())) - (self.I * self.r.get_value() / self.L.get_value())
 
         self.I = self.I + (alpha * self.dt)
         self.Q = self.Q - (self.I * self.dt)
@@ -73,7 +73,7 @@ class RLC(Scene):
         r_text, r_number, r_units = r_label = VGroup(
             Text("R = ", font_size=36).set_color(RED),
             DecimalNumber(
-                self.R.get_value(),
+                self.r.get_value(),
                 num_decimal_places = 2,
                 include_sign = True
             ),
@@ -120,7 +120,7 @@ class RLC(Scene):
         ).arrange(RIGHT).next_to(r_label, UP)
 
         # add updaters to decimal numbers
-        r_number.add_updater(lambda m: m.set_value(self.R.get_value()))
+        r_number.add_updater(lambda m: m.set_value(self.r.get_value()))
         l_number.add_updater(lambda m: m.set_value(self.L.get_value()))
         c_number.add_updater(lambda m: m.set_value(self.C.get_value()))
         frequency_number.add_updater(lambda m: m.set_value(get_resonant_frequency(self.L, self.C)))
@@ -131,13 +131,13 @@ class RLC(Scene):
 
         # play animations
         self.wait()
-        self.play(self.R.animate.set_value(6), run_time = 3)
+        self.play(self.r.animate.set_value(6), run_time = 3)
         self.play(self.L.animate.set_value(0.5), run_time = 2)
         self.play(self.C.animate.set_value(0.002), run_time = 2)
 
         self.play(self.L.animate.set_value(0.2), run_time = 1)
         self.play(self.C.animate.set_value(0.0001), run_time = 1)
-        self.play(self.R.animate.set_value(0), run_time = 2)
+        self.play(self.r.animate.set_value(0), run_time = 2)
 
         self.play(self.time.animate.set_value(2))
         self.wait()
