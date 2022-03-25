@@ -9,9 +9,9 @@ class RLC(Scene):
     l = ValueTracker(0.2)
     c = ValueTracker(0.0001)
 
-    EMF = 5
+    emf = 5
     I = 0
-    Q = c.get_value() * EMF
+    Q = c.get_value() * emf
 
     dt = .001
     time = ValueTracker(1)
@@ -28,13 +28,13 @@ class RLC(Scene):
 
     # Generates the plot Volatage by Time
     def generate_voltage_plot(self, axes):
-        self.Q = self.c.get_value() * self.EMF
+        self.Q = self.c.get_value() * self.emf
         self.I = 0
         return axes.plot(lambda t: self.get_voltage_and_current()[0], [0, self.time.get_value(), self.dt]).set_color(YELLOW)
 
     # Generates the plot Current by Time
     def generate_current_plot(self, axes):
-        self.Q = self.c.get_value() * self.EMF
+        self.Q = self.c.get_value() * self.emf
         self.I = 0
         return axes.plot(lambda t: self.get_voltage_and_current()[1], [0, self.time.get_value(), self.dt]).set_color(BLUE)
 
