@@ -10,32 +10,32 @@ class RLC(Scene):
     c = ValueTracker(0.0001)
 
     emf = 5
-    I = 0
-    Q = c.get_value() * emf
+    i = 0
+    q = c.get_value() * emf
 
     dt = .001
     time = ValueTracker(1)
 
     # Returns the Voltage and Current at frame
     def get_voltage_and_current(self):
-        alpha = (self.Q / (self.l.get_value() * self.c.get_value())) - (self.I * self.r.get_value() / self.l.get_value())
+        alpha = (self.q / (self.l.get_value() * self.c.get_value())) - (self.i * self.r.get_value() / self.l.get_value())
 
-        self.I = self.I + (alpha * self.dt)
-        self.Q = self.Q - (self.I * self.dt)
+        self.i = self.i + (alpha * self.dt)
+        self.q = self.q - (self.i * self.dt)
 
-        Vc = self.Q / self.c.get_value()
-        return Vc, self.I
+        Vc = self.q / self.c.get_value()
+        return Vc, self.i
 
     # Generates the plot Volatage by Time
     def generate_voltage_plot(self, axes):
-        self.Q = self.c.get_value() * self.emf
-        self.I = 0
+        self.q = self.c.get_value() * self.emf
+        self.i = 0
         return axes.plot(lambda t: self.get_voltage_and_current()[0], [0, self.time.get_value(), self.dt]).set_color(YELLOW)
 
     # Generates the plot Current by Time
     def generate_current_plot(self, axes):
-        self.Q = self.c.get_value() * self.emf
-        self.I = 0
+        self.q = self.c.get_value() * self.emf
+        self.i = 0
         return axes.plot(lambda t: self.get_voltage_and_current()[1], [0, self.time.get_value(), self.dt]).set_color(BLUE)
 
     # Constructs the Scene
