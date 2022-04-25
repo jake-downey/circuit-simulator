@@ -17,13 +17,7 @@ class ParametricResonance(Scene):
     time = ValueTracker(0.04)
     dt = .001 * time.get_value()
 
-    # def get_mean_resonant_frequency(self):
-    #     mean_resonance = (
-    #         get_resonant_frequency(self.l.get_value() * (1 + self.m.get_value()), self.c.get_value()) +
-    #         get_resonant_frequency(self.l.get_value(), self.c.get_value())
-    #     ) / 2
-    #     return mean_resonance
-
+    # Returns varying inductance at time t
     def get_varying_inductance(self, t):
         l_var = (
             self.l.get_value() * (
@@ -33,6 +27,7 @@ class ParametricResonance(Scene):
         )
         return l_var
 
+    # Returns voltage and current as an array at time t
     def get_voltage_and_current(self, t):
         alpha = (self.q / (self.get_varying_inductance(t) * self.c.get_value())) - (self.i * self.r.get_value() / self.get_varying_inductance(t))
 
@@ -56,6 +51,8 @@ class ParametricResonance(Scene):
 
     # Constructs the Scene
     def construct(self):
+
+        # Create axes and and add updater
         axes = Axes(
                 x_range=[0, self.time.get_value(), self.time.get_value().round(4) / 10],
                 y_range=[-6, 6, 1],

@@ -6,15 +6,16 @@ from utils import *
 # Electric Circuit Simulator
 class CircuitScene(Scene):
     R = ValueTracker(0)
-    L = ValueTracker(0.2)
+    L = ValueTracker(0.02)
     C = ValueTracker(0.0001)
 
     EMF = 5
     I = 0
     Q = C.get_value() * EMF
 
-    dt = .001
-    time = ValueTracker(1)
+    time = ValueTracker(0.04)
+    dt = time.get_value() / 1000
+    delta = ValueTracker(0)
 
     # Returns the Voltage and Current at frame
     def get_voltage_and_current(self):
@@ -30,13 +31,13 @@ class CircuitScene(Scene):
     def generate_voltage_plot(self, axes):
         self.Q = self.C.get_value() * self.EMF
         self.I = 0
-        return axes.plot(lambda t: self.get_voltage_and_current()[0], [0, self.time.get_value(), self.dt]).set_color(YELLOW)
+        return axes.plot(lambda t: self.get_voltage_and_current()[0], [0, self.delta.get_value(), self.dt]).set_color(YELLOW)
 
     # Generates the plot Current by Time
     def generate_current_plot(self, axes):
         self.Q = self.C.get_value() * self.EMF
         self.I = 0
-        return axes.plot(lambda t: self.get_voltage_and_current()[1], [0, self.time.get_value(), self.dt]).set_color(BLUE)
+        return axes.plot(lambda t: self.get_voltage_and_current()[1], [0, self.delta.get_value(), self.dt]).set_color(BLUE)
 
     # Constructs the Scene
     def construct(self):
@@ -155,14 +156,28 @@ class CircuitScene(Scene):
 #-------------------------------------CREATING THE SCENE---------------------------------------
 
         # add objects and animations
-        self.add(r_label, l_label, c_label, frequency_label, va_label)
-        self.add(axes, voltage, current)
         self.add(circuit_diagram)
+        self.wait()
+        self.play(Indicate(magnetic_field))
+        self.play(Indicate(dielectric_field))
+        self.play(Indicate(resistive_loss))
 
-        labels = VGroup(r_label, l_label, c_label, frequency_label, va_label)
-        graph = VGroup(axes, voltage, current)
-
+        self.wait(2)
         self.play(circuit_diagram.animate.scale(0.6).to_edge(DR))
+
+        self.wait(2)
+        self.play(FadeOut(magnetic_field, dielectric_field, resistive_loss))
+
+        ellipse_1.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[1])*2))
+        ellipse_2.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[1])*2))
+        dielectric_field.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[0])/5))
+
+        self.wait(2)
+        self.play(FadeIn(r_label, l_label, c_label, frequency_label, va_label, axes, voltage, current), run_time = 0.5)
+        self.play(FadeIn(magnetic_field, dielectric_field, resistive_loss))
+
+        self.wait(2)
+        self.play(self.delta.animate.set_value(self.time.get_value()), run_time = 24, rate_func = linear)
 
         # play animations
         # self.wait()
