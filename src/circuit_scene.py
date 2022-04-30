@@ -5,7 +5,7 @@ from utils import *
 
 # Electric Circuit Simulator
 class CircuitScene(Scene):
-    R = ValueTracker(0)
+    R = ValueTracker(1)
     L = ValueTracker(0.02)
     C = ValueTracker(0.0001)
 
@@ -25,10 +25,12 @@ class CircuitScene(Scene):
         self.Q = self.Q - (self.I * self.dt)
 
         Vc = self.Q / self.C.get_value()
-        return Vc, self.I
+        Vr = self.I * self.R.get_value()
+        Vl = -Vc - Vr
+        return Vc, -self.I, Vr, Vl
 
     # Generates the plot Volatage by Time
-    def generate_voltage_plot(self, axes):
+    def generate_voltage_plot_c(self, axes):
         self.Q = self.C.get_value() * self.EMF
         self.I = 0
         return axes.plot(lambda t: self.get_voltage_and_current()[0], [0, self.delta.get_value(), self.dt]).set_color(YELLOW)
@@ -38,6 +40,16 @@ class CircuitScene(Scene):
         self.Q = self.C.get_value() * self.EMF
         self.I = 0
         return axes.plot(lambda t: self.get_voltage_and_current()[1], [0, self.delta.get_value(), self.dt]).set_color(BLUE)
+
+    def generate_voltage_plot_r(self, axes):
+        self.Q = self.C.get_value() * self.EMF
+        self.I = 0
+        return axes.plot(lambda t: self.get_voltage_and_current()[2], [0, self.delta.get_value(), self.dt]).set_color(RED)
+
+    def generate_voltage_plot_l(self, axes):
+        self.Q = self.C.get_value() * self.EMF
+        self.I = 0
+        return axes.plot(lambda t: self.get_voltage_and_current()[3], [0, self.delta.get_value(), self.dt]).set_color(GREEN)
 
     # Constructs the Scene
     def construct(self):
@@ -60,6 +72,7 @@ class CircuitScene(Scene):
         resistive_loss = star_1.next_to(circuit, UP + UP)
 
         circuit_diagram = Group(circuit.scale(4), magnetic_field, dielectric_field, resistive_loss)
+
 
 #-------------------------------------OSCILOSCOPE GRAPH-----------------------------------------
 
@@ -89,10 +102,14 @@ class CircuitScene(Scene):
         x_axis.add_updater(lambda mob: mob.set(x_range = [0, self.time.get_value(), .1]))
 
         # Generate plot of Voltage and Current and adds updater to be redrawn every frame
-        voltage = self.generate_voltage_plot(axes)
+        voltage = self.generate_voltage_plot_c(axes)
         current = self.generate_current_plot(axes)
-        voltage.add_updater(lambda mob: mob.become(self.generate_voltage_plot(axes)))
+        r_voltage = self.generate_voltage_plot_r(axes)
+        l_voltage = self.generate_voltage_plot_l(axes)
+        voltage.add_updater(lambda mob: mob.become(self.generate_voltage_plot_c(axes)))
         current.add_updater(lambda mob: mob.become(self.generate_current_plot(axes)))
+        r_voltage.add_updater(lambda mob: mob.become(self.generate_voltage_plot_r(axes)))
+        l_voltage.add_updater(lambda mob: mob.become(self.generate_voltage_plot_l(axes)))
 
 #-------------------------------------------TEXT-----------------------------------------------
 
@@ -162,22 +179,59 @@ class CircuitScene(Scene):
         self.play(Indicate(dielectric_field))
         self.play(Indicate(resistive_loss))
 
-        self.wait(2)
+        self.wait()
         self.play(circuit_diagram.animate.scale(0.6).to_edge(DR))
-
-        self.wait(2)
+        self.wait()
         self.play(FadeOut(magnetic_field, dielectric_field, resistive_loss))
 
         ellipse_1.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[1])*2))
         ellipse_2.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[1])*2))
         dielectric_field.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[0])/5))
 
-        self.wait(2)
-        self.play(FadeIn(r_label, l_label, c_label, frequency_label, va_label, axes, voltage, current), run_time = 0.5)
-        self.play(FadeIn(magnetic_field, dielectric_field, resistive_loss))
+        # ARROWS and PLUS MINUS
+        arrow_l = Arrow(start=DOWN, end=UP, color = BLUE, tip_length=0.2)
+        arrow_r = Arrow(start=LEFT, end=RIGHT, color = BLUE, tip_length=0.2)
+        arrow_c = Arrow(start=UP, end=DOWN, color = BLUE, tip_length=0.2)
 
-        self.wait(2)
-        self.play(self.delta.animate.set_value(self.time.get_value()), run_time = 24, rate_func = linear)
+        plus_l = Text("+", font_size=20).set_color(YELLOW).next_to(magnetic_field, DL, buff=0)
+        minus_l = Text("-", font_size=40).set_color(YELLOW).next_to(magnetic_field, UL, buff=0)
+        plus_r = Text("+", font_size=20).set_color(YELLOW).next_to(resistive_loss, UL, buff=0)
+        minus_r = Text("-", font_size=40).set_color(YELLOW).next_to(resistive_loss, UR, buff=0)
+        plus_c = Text("+", font_size=20).set_color(YELLOW).next_to(dielectric_field, UR)
+        minus_c = Text("-", font_size=40).set_color(YELLOW).next_to(dielectric_field, DR)
+
+        arrow_l.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[1])*2))
+        arrow_l.add_updater(lambda m: set_orienation_l_arrow(self, m, magnetic_field))
+        arrow_r.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[1])*2))
+        arrow_r.add_updater(lambda m: set_orienation_r_arrow(self, m, resistive_loss))
+        arrow_c.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[1])*2))
+        arrow_c.add_updater(lambda m: set_orienation_c_arrow(self, m, dielectric_field))
+
+        plus_r.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[1])*2))
+        plus_r.add_updater(lambda m: set_oriention_r_plus(self, m, resistive_loss))
+        minus_r.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[1])*2))
+        minus_r.add_updater(lambda m: set_oriention_r_minus(self, m, resistive_loss))
+
+        plus_l.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[0])/5))
+        plus_l.add_updater(lambda m: set_oriention_l_plus(self, m, magnetic_field))
+        minus_l.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[0])/5))
+        minus_l.add_updater(lambda m: set_oriention_l_minus(self, m, magnetic_field))
+
+        plus_c.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[0])/5))
+        plus_c.add_updater(lambda m: set_oriention_c_plus(self, m, dielectric_field))
+        minus_c.add_updater(lambda m: m.set_opacity(abs(self.get_voltage_and_current()[0])/5))
+        minus_c.add_updater(lambda m: set_oriention_c_minus(self, m, dielectric_field))
+
+        self.wait()
+        self.play(FadeIn(r_label, l_label, c_label, frequency_label, va_label, 
+                         axes, voltage, current, r_voltage, l_voltage), run_time = 0.5)
+        self.wait()
+        self.add(magnetic_field, dielectric_field, resistive_loss,
+                 arrow_l, arrow_r, arrow_c,
+                 plus_l, plus_r, plus_c, minus_l, minus_r, minus_c)
+        self.play(self.delta.animate.set_value(self.time.get_value()), run_time = 12, rate_func = linear)
+
+
 
         # play animations
         # self.wait()
